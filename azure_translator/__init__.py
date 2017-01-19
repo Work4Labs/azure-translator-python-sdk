@@ -44,23 +44,27 @@ class Translator(object):
             raise self._api_error(error)
         return resp.content
 
-    def translate(self, text, to=DEFAULT_LANGUAGE):
+    def translate(self, text, to=DEFAULT_LANGUAGE, source_language=None):
         """
         Translate some text into some language. Target language default to english.
 
         :param text:               the text to translate
         :param to:                 the target language
+        :param source_language:    optional source language
         """
+        params = {
+            'text': text,
+            'to': to,
+        }
+        if source_language:
+            params['from'] = source_language
         resp = requests.get(
             self.TRANSLATE_API,
             headers={
                 'Authorization': 'Bearer {}'.format(self.get_access_token()),
                 'Accept': 'application/xml',
             },
-            params={
-                'text': text,
-                'to': to,
-            }
+            params=params
         )
         try:
             resp.raise_for_status()

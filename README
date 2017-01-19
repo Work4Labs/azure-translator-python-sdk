@@ -8,4 +8,7 @@ Usage:
 >>> t = Translator('your_api_key')
 >>> t.translate('Je suis fatigué')
 'I am tired'
+
+>>> t.translate("Aujourd'hui", source_language='fr')
+'Today'
 ```

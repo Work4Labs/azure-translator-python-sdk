@@ -90,6 +90,27 @@ class TranslatorTestCase(unittest.TestCase):
     @patch('requests.get', return_value=MagicMock(
         content='<string xmlns="http://schemas.microsoft.com/2003/10/Serialization/">I am tired</string>'
     ))
+    def test_translate_source_lang(self, request_get, get_access_token):
+        self.assertEqual(self.translator.translate(text='Je suis fatigué', source_language='fr'), 'I am tired')
+        request_get.assert_called_with(
+            self.translator.TRANSLATE_API,
+            headers={
+                'Authorization': 'Bearer super-token',
+                'Accept': 'application/xml',
+            },
+            params={
+                'text': 'Je suis fatigué',
+                'to': self.translator.DEFAULT_LANGUAGE,
+                'from': 'fr',
+            }
+        )
+        request_get.return_value.raise_for_status.assert_called_with()
+        get_access_token.assert_called_with()
+
+    @patch.object(Translator, 'get_access_token', return_value='super-token')
+    @patch('requests.get', return_value=MagicMock(
+        content='<string xmlns="http://schemas.microsoft.com/2003/10/Serialization/">I am tired</string>'
+    ))
     def test_translate_API_error(self, request_get, get_access_token):
         resp = request_get.return_value
         resp.raise_for_status.side_effect = HTTPError('boom', response='resp', request='req')
