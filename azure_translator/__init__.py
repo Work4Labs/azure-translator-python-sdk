@@ -52,4 +52,4 @@ class Translator(object):
             }
         )
         resp.raise_for_status()
-        return ET.fromstring(resp.content).text
+        return ET.fromstring(resp.content.encode('utf-8')).text
