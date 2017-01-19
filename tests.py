@@ -68,10 +68,10 @@ class TranslatorTestCase(unittest.TestCase):
 
     @patch.object(Translator, 'get_access_token', return_value='super-token')
     @patch('requests.get', return_value=MagicMock(
-        content='<string xmlns="http://schemas.microsoft.com/2003/10/Serialization/">Je suis fatigué</string>'
+        content='<string xmlns="http://schemas.microsoft.com/2003/10/Serialization/">Je suis</string>'
     ))
     def test_translate_custom_language(self, request_get, get_access_token):
-        self.assertEqual(self.translator.translate(text='I am tired', to='fr'), 'Je suis fatigué')
+        self.assertEqual(self.translator.translate(text='I am', to='fr'), 'Je suis')
         request_get.assert_called_with(
             self.translator.TRANSLATE_API,
             headers={
@@ -79,7 +79,28 @@ class TranslatorTestCase(unittest.TestCase):
                 'Accept': 'application/xml',
             },
             params={
-                'text': 'I am tired',
+                'text': 'I am',
+                'to': 'fr',
+            }
+        )
+        request_get.return_value.raise_for_status.assert_called_with()
+        get_access_token.assert_called_with()
+
+
+    @patch.object(Translator, 'get_access_token', return_value='super-token')
+    @patch('requests.get', return_value=MagicMock(
+        content='<string xmlns="http://schemas.microsoft.com/2003/10/Serialization/">fatigué</string>'.encode('utf-8')
+    ))
+    def test_translate_response_encoding(self, request_get, get_access_token):
+        self.assertEqual(self.translator.translate(text='tired', to='fr'), 'fatigué')
+        request_get.assert_called_with(
+            self.translator.TRANSLATE_API,
+            headers={
+                'Authorization': 'Bearer super-token',
+                'Accept': 'application/xml',
+            },
+            params={
+                'text': 'tired',
                 'to': 'fr',
             }
         )
