@@ -85,5 +85,5 @@ class AzureApiError(Exception):
 
 class AzureApiBadFormatError(AzureApiError):
     """
-    Raised when the API returns a malformatted error.
+    Raised when the API returns a malformed error.
     """
