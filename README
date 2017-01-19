@@ -1,5 +1,7 @@
 # azure-translator-python-sdk
 
+For more information on Azure translator API, follow
+[their documentation](http://docs.microsofttranslator.com/text-translate.html#!/default/get_Translate).
 
 Usage:
 ```python
