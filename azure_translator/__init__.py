@@ -72,7 +72,7 @@ class Translator(object):
             raise self._api_error(error)
 
         try:
-            return ET.fromstring(resp.content.encode('utf-8')).text
+            return ET.fromstring(resp.content).text
         except ET.ParseError as e:
             raise AzureApiBadFormatError(unicode(e), response=resp, request=getattr(resp, 'request', None))
 
