@@ -7,7 +7,8 @@ def read(fname):
     """
     Read file (README).
     """
-    return open(os.path.join(os.path.dirname(__file__), fname)).read()
+    with open(os.path.join(os.path.dirname(__file__), fname)) as handle:
+        return handle.read()
 
 
 setup(
