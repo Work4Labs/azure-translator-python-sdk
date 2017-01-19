@@ -18,6 +18,14 @@ class Translator(object):
     def __init__(self, api_key):
         self.api_key = api_key
 
+    @staticmethod
+    def _api_error(request_error):
+        return AzureApiError(
+            unicode(request_error),
+            response=request_error.response,
+            request=request_error.request
+        )
+
     def get_access_token(self):
         """
         Retrieve an access token in order to use the Translator API.
@@ -30,7 +38,10 @@ class Translator(object):
                 'Ocp-Apim-Subscription-Key': self.api_key,
             }
         )
-        resp.raise_for_status()
+        try:
+            resp.raise_for_status()
+        except requests.exceptions.HTTPError as error:
+            raise self._api_error(error)
         return resp.content
 
     def translate(self, text, to=DEFAULT_LANGUAGE):
@@ -51,5 +62,28 @@ class Translator(object):
                 'to': to,
             }
         )
-        resp.raise_for_status()
-        return ET.fromstring(resp.content.encode('utf-8')).text
+        try:
+            resp.raise_for_status()
+        except requests.exceptions.HTTPError as error:
+            raise self._api_error(error)
+
+        try:
+            return ET.fromstring(resp.content.encode('utf-8')).text
+        except ET.ParseError as e:
+            raise AzureApiBadFormatError(unicode(e), response=resp, request=getattr(resp, 'request', None))
+
+
+class AzureApiError(Exception):
+    """
+    Raised when the API returns a non-200 body.
+    """
+    def __init__(self, *args, **kwargs):
+        self.response = kwargs.pop('response', None)
+        self.request = kwargs.pop('request', None)
+        super(AzureApiError, self).__init__(*args, **kwargs)
+
+
+class AzureApiBadFormatError(AzureApiError):
+    """
+    Raised when the API returns a malformatted error.
+    """
