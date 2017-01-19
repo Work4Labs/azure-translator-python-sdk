@@ -16,7 +16,7 @@ def read(fname):
 
 setup(
     name='azure-translator',
-    version='0.1.1',
+    version='0.1.2',
     description='Python SDK for Azure Translator API.',
     long_description=read('README.md'),
     author='mvdb',
