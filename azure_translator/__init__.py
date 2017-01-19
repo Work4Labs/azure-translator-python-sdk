@@ -10,7 +10,7 @@ class Translator(object):
 
         http://docs.microsofttranslator.com/text-translate.html
     """
-    DEFAULT_LANG = 'en'
+    DEFAULT_LANGUAGE = 'en'
     TOKEN_API = 'https://api.cognitive.microsoft.com/sts/v1.0/issueToken'
     TRANSLATE_API = 'https://api.microsofttranslator.com/v2/http.svc/Translate'
 
@@ -33,7 +33,7 @@ class Translator(object):
         resp.raise_for_status()
         return resp.content
 
-    def translate(self, text, to=DEFAULT_LANG):
+    def translate(self, text, to=DEFAULT_LANGUAGE):
         """
         Translate some text into some language. Target language default to english.
 
