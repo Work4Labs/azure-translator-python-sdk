@@ -3,9 +3,9 @@
 
 Usage:
 ```python
-from azure_translator import Translator
+>>> from azure_translator import Translator
 
-t = Translator('xxx')
-t.translate('Je suis fatigué')
+>>> t = Translator('your_api_key')
+>>> t.translate('Je suis fatigué')
 'I am tired'
 ```
