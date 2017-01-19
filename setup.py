@@ -1,8 +1,14 @@
 #!/usr/bin/env python
 from setuptools import setup
+import os
+
 
 def read(fname):
+    """
+    Read file (README).
+    """
     return open(os.path.join(os.path.dirname(__file__), fname)).read()
+
 
 setup(
     name='azure-translator',
