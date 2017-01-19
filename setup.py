@@ -12,9 +12,9 @@ def read(fname):
 
 setup(
     name='azure-translator',
-    version='0.1',
+    version='0.1.1',
     description='Python SDK for Azure Translator API.',
-    long_description=read('README.md'),
+    long_description=read('README'),
     author='mvdb',
     author_email='mvdb@work4labs.com',
     url='https://github.com/Work4Labs/azure-translator-python-sdk',
