@@ -9,6 +9,9 @@ Usage:
 >>> t.translate('Je suis fatigué')
 'I am tired'
 
+>>> t.translate("Hello", to='fr')
+'Bonjour'
+
 >>> t.translate("Aujourd'hui", source_language='fr')
 'Today'
 ```
