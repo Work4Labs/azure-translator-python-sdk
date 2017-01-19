@@ -7,15 +7,18 @@ def read(fname):
     """
     Read file (README).
     """
-    with open(os.path.join(os.path.dirname(__file__), fname)) as handle:
-        return handle.read()
+    try:
+        with open(os.path.join(os.path.dirname(__file__), fname)) as handle:
+            return handle.read()
+    except IOError:
+        return ''
 
 
 setup(
     name='azure-translator',
     version='0.1.1',
     description='Python SDK for Azure Translator API.',
-    long_description=read('README'),
+    long_description=read('README.md'),
     author='mvdb',
     author_email='mvdb@work4labs.com',
     url='https://github.com/Work4Labs/azure-translator-python-sdk',
