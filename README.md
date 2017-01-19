@@ -1,0 +1,1 @@
+# azure-translator-python-sdk
