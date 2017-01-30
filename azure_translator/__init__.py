@@ -2,6 +2,7 @@
 import xml.etree.ElementTree as ET
 
 import requests
+from .errors import AzureApiError, AzureApiBadFormatError
 
 
 class Translator(object):
@@ -75,19 +76,3 @@ class Translator(object):
             return ET.fromstring(resp.content).text
         except ET.ParseError as e:
             raise AzureApiBadFormatError(unicode(e), response=resp, request=getattr(resp, 'request', None))
-
-
-class AzureApiError(Exception):
-    """
-    Raised when the API returns a non-200 body.
-    """
-    def __init__(self, *args, **kwargs):
-        self.response = kwargs.pop('response', None)
-        self.request = kwargs.pop('request', None)
-        super(AzureApiError, self).__init__(*args, **kwargs)
-
-
-class AzureApiBadFormatError(AzureApiError):
-    """
-    Raised when the API returns a malformed error.
-    """
