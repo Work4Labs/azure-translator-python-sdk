@@ -200,6 +200,7 @@ class ErrorsTestCase(unittest.TestCase):
 
     def test_AzureApiError_init_parsing_response(self):
         resp = MagicMock(
+            status_code=400,
             content="<html><body><h1>Argument Exception</h1><p>Method: Translate()</p>"
                     "<p>Parameter: from</p><p>Message: 'from' must be a valid language&#xD;"
                     "\nParameter name: from</p><code></code>"
@@ -209,6 +210,7 @@ class ErrorsTestCase(unittest.TestCase):
         self.assertIsNotNone(exc.response)
         self.assertEqual(
             str(exc),
+            "HTTP status: 400; "
             "Argument Exception; Method: Translate(); "
             "Parameter: from; "
             "Message: 'from' must be a valid language\r\nParameter name: from; "

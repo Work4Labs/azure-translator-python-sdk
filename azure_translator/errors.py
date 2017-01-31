@@ -22,7 +22,10 @@ class AzureApiError(BaseAzureException):
         response = kwargs.get('response')
         if response:
             try:
-                msg = self.MSG_SEPARATOR.join(ET.fromstring(response.content).itertext())
+                msg = "HTTP status: {}; {}".format(
+                    response.status_code,
+                    self.MSG_SEPARATOR.join(ET.fromstring(response.content).itertext())
+                )
             except ET.ParseError:
                 pass
 
