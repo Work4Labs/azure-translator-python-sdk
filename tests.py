@@ -5,7 +5,7 @@ import unittest
 from mock import patch, MagicMock
 from requests.exceptions import HTTPError
 
-from azure_translator import Translator, AzureApiError, AzureApiBadFormatError
+from azure_translator import Translator, errors
 
 
 class TranslatorTestCase(unittest.TestCase):
@@ -33,8 +33,10 @@ class TranslatorTestCase(unittest.TestCase):
     @patch('requests.post')
     def test_get_access_token_error(self, request_post):
         resp = request_post.return_value
-        resp.raise_for_status.side_effect = HTTPError('boom', response='resp', request='req')
-        with self.assertRaises(AzureApiError):
+        resp.raise_for_status.side_effect = HTTPError(
+            'boom', response=MagicMock(content="<xml>OUPS</xml>"), request='req'
+        )
+        with self.assertRaises(errors.AzureCannotGetTokenError):
             self.translator.get_access_token()
         request_post.assert_called_with(
             self.translator.TOKEN_API,
@@ -134,8 +136,10 @@ class TranslatorTestCase(unittest.TestCase):
     ))
     def test_translate_API_error(self, request_get, get_access_token):
         resp = request_get.return_value
-        resp.raise_for_status.side_effect = HTTPError('boom', response='resp', request='req')
-        with self.assertRaises(AzureApiError):
+        resp.raise_for_status.side_effect = HTTPError(
+            'boom', response=MagicMock(content="<xml>OUPS</xml>"), request='req'
+        )
+        with self.assertRaises(errors.AzureApiError):
             self.translator.translate(text='Je suis fatigué')
         request_get.assert_called_with(
             self.translator.TRANSLATE_API,
@@ -156,7 +160,7 @@ class TranslatorTestCase(unittest.TestCase):
         content='oupsie'
     ))
     def test_translate_not_an_xml(self, request_get, get_access_token):
-        with self.assertRaises(AzureApiBadFormatError):
+        with self.assertRaises(errors.AzureApiBadFormatError):
             self.translator.translate(text='Je suis fatigué')
         request_get.assert_called_with(
             self.translator.TRANSLATE_API,
@@ -171,3 +175,49 @@ class TranslatorTestCase(unittest.TestCase):
         )
         request_get.return_value.raise_for_status.assert_called_with()
         get_access_token.assert_called_with()
+
+
+
+class ErrorsTestCase(unittest.TestCase):
+
+    def test_BaseAzureException_init(self):
+        exc = errors.BaseAzureException("youpi")
+        self.assertIsNone(exc.response)
+        self.assertIsNone(exc.request)
+        self.assertEqual(str(exc), 'youpi')
+
+    def test_BaseAzureException_init_with_response_and_request(self):
+        exc = errors.BaseAzureException("youpi", response="resp", request="req")
+        self.assertEqual(exc.response, "resp")
+        self.assertEqual(exc.request, "req")
+        self.assertEqual(str(exc), 'youpi')
+
+    def test_AzureApiError_init(self):
+        exc = errors.AzureApiError("oups")
+        self.assertIsNone(exc.response)
+        self.assertIsNone(exc.request)
+        self.assertEqual(str(exc), 'oups')
+
+    def test_AzureApiError_init_parsing_response(self):
+        resp = MagicMock(
+            status_code=400,
+            content="<html><body><h1>Argument Exception</h1><p>Method: Translate()</p>"
+                    "<p>Parameter: from</p><p>Message: 'from' must be a valid language&#xD;"
+                    "\nParameter name: from</p><code></code>"
+                    "<p>message id=0243.V2_Rest.Translate.49CC880B</p></body></html>"
+        )
+        exc = errors.AzureApiError("oups", response=resp)
+        self.assertIsNotNone(exc.response)
+        self.assertEqual(
+            str(exc),
+            "HTTP status: 400; "
+            "Argument Exception; Method: Translate(); "
+            "Parameter: from; "
+            "Message: 'from' must be a valid language\r\nParameter name: from; "
+            "message id=0243.V2_Rest.Translate.49CC880B"
+        )
+
+    def test_AzureApiError_init_parsing_response_error(self):
+        resp = MagicMock(content="eazoieoiazbeoazgeoaziub")
+        exc = errors.AzureApiError("stuff", response=resp)
+        self.assertEqual(str(exc), "stuff")
