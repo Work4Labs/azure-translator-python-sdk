@@ -2,7 +2,7 @@
 import xml.etree.ElementTree as ET
 
 import requests
-from .errors import AzureApiError, AzureApiBadFormatError
+from .errors import AzureApiError, AzureApiBadFormatError, AzureCannotGetTokenError
 
 
 class Translator(object):
@@ -19,14 +19,6 @@ class Translator(object):
     def __init__(self, api_key):
         self.api_key = api_key
 
-    @staticmethod
-    def _api_error(request_error):
-        return AzureApiError(
-            unicode(request_error),
-            response=request_error.response,
-            request=request_error.request
-        )
-
     def get_access_token(self):
         """
         Retrieve an access token in order to use the Translator API.
@@ -42,7 +34,11 @@ class Translator(object):
         try:
             resp.raise_for_status()
         except requests.exceptions.HTTPError as error:
-            raise self._api_error(error)
+            raise AzureCannotGetTokenError(
+                unicode(error),
+                response=error.response,
+                request=error.request
+            )
         return resp.content
 
     def translate(self, text, to=DEFAULT_LANGUAGE, source_language=None):
@@ -70,7 +66,11 @@ class Translator(object):
         try:
             resp.raise_for_status()
         except requests.exceptions.HTTPError as error:
-            raise self._api_error(error)
+            raise AzureApiError(
+                unicode(error),
+                response=error.response,
+                request=error.request
+            )
 
         try:
             return ET.fromstring(resp.content).text

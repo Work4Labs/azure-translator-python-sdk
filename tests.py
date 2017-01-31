@@ -36,7 +36,7 @@ class TranslatorTestCase(unittest.TestCase):
         resp.raise_for_status.side_effect = HTTPError(
             'boom', response=MagicMock(content="<xml>OUPS</xml>"), request='req'
         )
-        with self.assertRaises(errors.AzureApiError):
+        with self.assertRaises(errors.AzureCannotGetTokenError):
             self.translator.get_access_token()
         request_post.assert_called_with(
             self.translator.TOKEN_API,
