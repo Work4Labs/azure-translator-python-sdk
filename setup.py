@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-from setuptools import setup
+from setuptools import setup, find_packages
 import os
 
 
@@ -22,7 +22,7 @@ setup(
     author='mvdb',
     author_email='mvdb@work4labs.com',
     url='https://github.com/Work4Labs/azure-translator-python-sdk',
-    packages=['azure_translator'],
+    packages=find_packages(),
     license='Apache',
     classifiers=[
         'Development Status :: 3 - Alpha',
