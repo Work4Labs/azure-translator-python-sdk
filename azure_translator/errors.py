@@ -35,7 +35,7 @@ class AzureApiBadFormatError(BaseAzureException):
     """
 
 
-class AzureCannotGetTokenError(BaseAzureException):
+class AzureCannotGetTokenError(AzureApiError):
     """
     Raised when the API refuses to return a token.
     """
