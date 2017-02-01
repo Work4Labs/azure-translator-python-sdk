@@ -20,7 +20,7 @@ class AzureApiError(BaseAzureException):
 
     def __init__(self, msg, *args, **kwargs):
         response = kwargs.get('response')
-        if response:
+        if response is not None:
             try:
                 msg = "HTTP status: {}; {}".format(
                     response.status_code,
