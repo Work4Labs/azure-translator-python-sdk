@@ -4,6 +4,7 @@ import unittest
 
 from mock import patch, MagicMock
 from requests.exceptions import HTTPError
+from requests.models import Response
 
 from azure_translator import Translator, errors
 
@@ -199,12 +200,13 @@ class ErrorsTestCase(unittest.TestCase):
         self.assertEqual(str(exc), 'oups')
 
     def test_AzureApiError_init_parsing_response(self):
-        resp = MagicMock(
-            status_code=400,
-            content="<html><body><h1>Argument Exception</h1><p>Method: Translate()</p>"
-                    "<p>Parameter: from</p><p>Message: 'from' must be a valid language&#xD;"
-                    "\nParameter name: from</p><code></code>"
-                    "<p>message id=0243.V2_Rest.Translate.49CC880B</p></body></html>"
+        resp = Response()
+        resp.status_code = 400
+        resp._content = (
+            "<html><body><h1>Argument Exception</h1><p>Method: Translate()</p>"
+            "<p>Parameter: from</p><p>Message: 'from' must be a valid language&#xD;"
+            "\nParameter name: from</p><code></code>"
+            "<p>message id=0243.V2_Rest.Translate.49CC880B</p></body></html>"
         )
         exc = errors.AzureApiError("oups", response=resp)
         self.assertIsNotNone(exc.response)
@@ -213,11 +215,13 @@ class ErrorsTestCase(unittest.TestCase):
             "HTTP status: 400; "
             "Argument Exception; Method: Translate(); "
             "Parameter: from; "
-            "Message: 'from' must be a valid language\r\nParameter name: from; "
+            "Message: 'from' must be a valid language; Parameter name: from; "
             "message id=0243.V2_Rest.Translate.49CC880B"
         )
 
     def test_AzureApiError_init_parsing_response_error(self):
-        resp = MagicMock(content="eazoieoiazbeoazgeoaziub")
+        resp = Response()
+        resp.status_code = 400
+        resp._content = "eazoieoiazbeoazgeoaziub"
         exc = errors.AzureApiError("stuff", response=resp)
         self.assertEqual(str(exc), "stuff")

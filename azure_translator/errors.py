@@ -20,12 +20,12 @@ class AzureApiError(BaseAzureException):
 
     def __init__(self, msg, *args, **kwargs):
         response = kwargs.get('response')
-        if response:
+        if response is not None:
             try:
                 msg = "HTTP status: {}; {}".format(
                     response.status_code,
                     self.MSG_SEPARATOR.join(ET.fromstring(response.content).itertext())
-                )
+                ).replace('\r\n', self.MSG_SEPARATOR)  # no line breaks
             except ET.ParseError:
                 pass
 
