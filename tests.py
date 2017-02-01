@@ -213,7 +213,7 @@ class ErrorsTestCase(unittest.TestCase):
             "HTTP status: 400; "
             "Argument Exception; Method: Translate(); "
             "Parameter: from; "
-            "Message: 'from' must be a valid language\r\nParameter name: from; "
+            "Message: 'from' must be a valid language; Parameter name: from; "
             "message id=0243.V2_Rest.Translate.49CC880B"
         )
 
