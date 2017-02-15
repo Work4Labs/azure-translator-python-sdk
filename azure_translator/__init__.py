@@ -2,7 +2,10 @@
 import xml.etree.ElementTree as ET
 
 import requests
-from .errors import AzureApiError, AzureApiBadFormatError, AzureCannotGetTokenError
+from .errors import (
+    AzureApiError, AzureApiBadFormatError,
+    AzureCannotGetTokenError, AzureApiTimeoutError
+)
 
 
 class Translator(object):
@@ -14,6 +17,7 @@ class Translator(object):
     DEFAULT_LANGUAGE = 'en'
     TOKEN_API = 'https://api.cognitive.microsoft.com/sts/v1.0/issueToken'
     TRANSLATE_API = 'https://api.microsofttranslator.com/v2/http.svc/Translate'
+    HTTP_TIMEOUT = 10  # seconds
 
 
     def __init__(self, api_key):
@@ -23,16 +27,19 @@ class Translator(object):
         """
         Retrieve an access token in order to use the Translator API.
         """
-        resp = requests.post(
-            self.TOKEN_API,
-            headers={
-                'Content-Type': 'application/json',
-                'Accept': 'application/jwt',
-                'Ocp-Apim-Subscription-Key': self.api_key,
-            }
-        )
         try:
+            resp = requests.post(
+                self.TOKEN_API,
+                headers={
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/jwt',
+                    'Ocp-Apim-Subscription-Key': self.api_key,
+                },
+                timeout=self.HTTP_TIMEOUT
+            )
             resp.raise_for_status()
+        except requests.exceptions.Timeout as error:
+            raise AzureApiTimeoutError(unicode(error), request=error.request)
         except requests.exceptions.HTTPError as error:
             raise AzureCannotGetTokenError(
                 unicode(error),
@@ -55,16 +62,19 @@ class Translator(object):
         }
         if source_language:
             params['from'] = source_language
-        resp = requests.get(
-            self.TRANSLATE_API,
-            headers={
-                'Authorization': 'Bearer {}'.format(self.get_access_token()),
-                'Accept': 'application/xml',
-            },
-            params=params
-        )
         try:
+            resp = requests.get(
+                self.TRANSLATE_API,
+                headers={
+                    'Authorization': 'Bearer {}'.format(self.get_access_token()),
+                    'Accept': 'application/xml',
+                },
+                params=params,
+                timeout=self.HTTP_TIMEOUT
+            )
             resp.raise_for_status()
+        except requests.exceptions.Timeout as error:
+            raise AzureApiTimeoutError(unicode(error), request=error.request)
         except requests.exceptions.HTTPError as error:
             raise AzureApiError(
                 unicode(error),
