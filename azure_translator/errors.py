@@ -42,3 +42,8 @@ class AzureCannotGetTokenError(AzureApiError):
     """
     Raised when the API refuses to return a token.
     """
+
+class AzureApiTimeoutError(BaseAzureException):
+    """
+    Raised when the API times out.
+    """

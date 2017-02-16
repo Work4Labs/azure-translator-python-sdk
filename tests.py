@@ -3,7 +3,7 @@ from __future__ import unicode_literals
 import unittest
 
 from mock import patch, MagicMock
-from requests.exceptions import HTTPError
+from requests.exceptions import HTTPError, Timeout
 from requests.models import Response
 
 from azure_translator import Translator, errors
@@ -27,7 +27,8 @@ class TranslatorTestCase(unittest.TestCase):
                 'Content-Type': 'application/json',
                 'Accept': 'application/jwt',
                 'Ocp-Apim-Subscription-Key': 'some-api-key',
-            }
+            },
+            timeout=Translator.HTTP_TIMEOUT
         )
         resp.raise_for_status.assert_called_with()
 
@@ -45,9 +46,24 @@ class TranslatorTestCase(unittest.TestCase):
                 'Content-Type': 'application/json',
                 'Accept': 'application/jwt',
                 'Ocp-Apim-Subscription-Key': 'some-api-key',
-            }
+            },
+            timeout=Translator.HTTP_TIMEOUT
         )
         resp.raise_for_status.assert_called_with()
+
+    @patch('requests.post', side_effect=Timeout)
+    def test_get_access_token_timeout(self, request_post):
+        with self.assertRaises(errors.AzureApiTimeoutError):
+            self.translator.get_access_token()
+        request_post.assert_called_with(
+            self.translator.TOKEN_API,
+            headers={
+                'Content-Type': 'application/json',
+                'Accept': 'application/jwt',
+                'Ocp-Apim-Subscription-Key': 'some-api-key',
+            },
+            timeout=Translator.HTTP_TIMEOUT
+        )
 
     @patch.object(Translator, 'get_access_token', return_value='super-token')
     @patch('requests.get', return_value=MagicMock(
@@ -61,6 +77,7 @@ class TranslatorTestCase(unittest.TestCase):
                 'Authorization': 'Bearer super-token',
                 'Accept': 'application/xml',
             },
+            timeout=Translator.HTTP_TIMEOUT,
             params={
                 'text': 'Je suis fatigué',
                 'to': self.translator.DEFAULT_LANGUAGE,
@@ -81,6 +98,7 @@ class TranslatorTestCase(unittest.TestCase):
                 'Authorization': 'Bearer super-token',
                 'Accept': 'application/xml',
             },
+            timeout=Translator.HTTP_TIMEOUT,
             params={
                 'text': 'I am',
                 'to': 'fr',
@@ -102,6 +120,7 @@ class TranslatorTestCase(unittest.TestCase):
                 'Authorization': 'Bearer super-token',
                 'Accept': 'application/xml',
             },
+            timeout=Translator.HTTP_TIMEOUT,
             params={
                 'text': 'tired',
                 'to': 'fr',
@@ -122,6 +141,7 @@ class TranslatorTestCase(unittest.TestCase):
                 'Authorization': 'Bearer super-token',
                 'Accept': 'application/xml',
             },
+            timeout=Translator.HTTP_TIMEOUT,
             params={
                 'text': 'Je suis fatigué',
                 'to': self.translator.DEFAULT_LANGUAGE,
@@ -148,6 +168,7 @@ class TranslatorTestCase(unittest.TestCase):
                 'Authorization': 'Bearer super-token',
                 'Accept': 'application/xml',
             },
+            timeout=Translator.HTTP_TIMEOUT,
             params={
                 'text': 'Je suis fatigué',
                 'to': self.translator.DEFAULT_LANGUAGE,
@@ -169,6 +190,7 @@ class TranslatorTestCase(unittest.TestCase):
                 'Authorization': 'Bearer super-token',
                 'Accept': 'application/xml',
             },
+            timeout=Translator.HTTP_TIMEOUT,
             params={
                 'text': 'Je suis fatigué',
                 'to': self.translator.DEFAULT_LANGUAGE,
@@ -177,6 +199,28 @@ class TranslatorTestCase(unittest.TestCase):
         request_get.return_value.raise_for_status.assert_called_with()
         get_access_token.assert_called_with()
 
+    @patch.object(Translator, 'get_access_token', return_value='super-token')
+    @patch('requests.get', side_effect=Timeout)
+    def test_translate_timeout_error(self, request_get, get_access_token):
+        resp = request_get.return_value
+        resp.raise_for_status.side_effect = HTTPError(
+            'boom', response=MagicMock(content="<xml>OUPS</xml>"), request='req'
+        )
+        with self.assertRaises(errors.AzureApiTimeoutError):
+            self.translator.translate(text='Je suis fatigué')
+        request_get.assert_called_with(
+            self.translator.TRANSLATE_API,
+            headers={
+                'Authorization': 'Bearer super-token',
+                'Accept': 'application/xml',
+            },
+            timeout=Translator.HTTP_TIMEOUT,
+            params={
+                'text': 'Je suis fatigué',
+                'to': self.translator.DEFAULT_LANGUAGE,
+            }
+        )
+        get_access_token.assert_called_with()
 
 
 class ErrorsTestCase(unittest.TestCase):
