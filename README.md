@@ -7,7 +7,12 @@
 For more information on Azure translator API, follow
 [their documentation](http://docs.microsofttranslator.com/text-translate.html#!/default/get_Translate).
 
-Usage:
+## Installation
+
+`pip install azure-translator`
+
+## Usage
+
 ```python
 >>> from azure_translator import Translator
 
