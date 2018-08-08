@@ -1,0 +1,11 @@
+version: 2
+jobs:
+  build:
+    docker:
+      # Main Python image: convenience image with git and other useful tools
+      - image: circleci/python:2.7-jessie-node
+    steps:
+      - checkout
+      - run: virtualenv venv
+      - run: venv/bin/python setup.py install
+      - run: venv/bin/python setup.py test
