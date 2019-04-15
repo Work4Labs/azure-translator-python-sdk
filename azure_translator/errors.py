@@ -24,9 +24,9 @@ class AzureApiError(BaseAzureException):
             try:
                 msg = "HTTP status: {}; {}".format(
                     response.status_code,
-                    self.MSG_SEPARATOR.join(ET.fromstring(response.content).itertext())
+                    response.content
                 ).replace('\r\n', self.MSG_SEPARATOR)  # no line breaks
-            except ET.ParseError:
+            except ValueError:
                 pass
 
         super(AzureApiError, self).__init__(msg, *args, **kwargs)
