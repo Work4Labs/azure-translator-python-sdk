@@ -64,10 +64,10 @@ class TranslatorTestCase(unittest.TestCase):
         )
 
     @patch.object(Translator, 'get_access_token', return_value='super-token')
-    @patch('requests.Response.json', return_value=[ { "translations": [ {"text": "I am tired" } ] } ])
+    @patch('requests.Response.json', return_value=[{"translations": [{"text": "I am tired"}]}])
     @patch('requests.post')
     def test_translate(self, request_post, response_json, get_access_token):
-        request_post.return_value = MagicMock(raise_for_status=MagicMock(return_value='200'), json=response_json)
+        request_post.return_value = MagicMock(json=response_json)
 
         self.assertEqual(self.translator.translate(text='Je suis fatigué'), 'I am tired')
         request_post.assert_called_with(
@@ -86,10 +86,10 @@ class TranslatorTestCase(unittest.TestCase):
         get_access_token.assert_called_with()
 
     @patch.object(Translator, 'get_access_token', return_value='super-token')
-    @patch('requests.Response.json', return_value=[ { "translations": [ {"text": "Je suis" } ] } ])
+    @patch('requests.Response.json', return_value=[{"translations": [{"text": "Je suis"}]}])
     @patch('requests.post')
     def test_translate_custom_language(self, request_post, response_json, get_access_token):
-        request_post.return_value = MagicMock(raise_for_status=MagicMock(return_value='200'), json=response_json)
+        request_post.return_value = MagicMock(json=response_json)
         self.assertEqual(self.translator.translate(text='I am', to='fr'), 'Je suis')
         request_post.assert_called_with(
             self.translator.TRANSLATE_API,
@@ -108,10 +108,10 @@ class TranslatorTestCase(unittest.TestCase):
 
 
     @patch.object(Translator, 'get_access_token', return_value='super-token')
-    @patch('requests.Response.json', return_value=[ { "translations": [ {"text": "fatigué" } ] } ])
+    @patch('requests.Response.json', return_value=[{"translations": [{"text": "fatigué"}]}])
     @patch('requests.post')
     def test_translate_response_encoding(self, request_post, response_json, get_access_token):
-        request_post.return_value = MagicMock(raise_for_status=MagicMock(return_value='200'), json=response_json)
+        request_post.return_value = MagicMock(json=response_json)
         self.assertEqual(self.translator.translate(text='tired', to='fr'), 'fatigué')
         request_post.assert_called_with(
             self.translator.TRANSLATE_API,
@@ -129,10 +129,10 @@ class TranslatorTestCase(unittest.TestCase):
         get_access_token.assert_called_with()
 
     @patch.object(Translator, 'get_access_token', return_value='super-token')
-    @patch('requests.Response.json', return_value=[ { "translations": [ {"text": "I am tired" } ] } ])
+    @patch('requests.Response.json', return_value=[{"translations": [{"text": "I am tired"}]}])
     @patch('requests.post')
     def test_translate_source_lang(self, request_post, response_json, get_access_token):
-        request_post.return_value = MagicMock(raise_for_status=MagicMock(return_value='200'), json=response_json)
+        request_post.return_value = MagicMock(json=response_json)
         self.assertEqual(self.translator.translate(text='Je suis fatigué', source_language='fr'), 'I am tired')
         request_post.assert_called_with(
             self.translator.TRANSLATE_API,
@@ -151,7 +151,7 @@ class TranslatorTestCase(unittest.TestCase):
         get_access_token.assert_called_with()
 
     @patch.object(Translator, 'get_access_token', return_value='super-token')
-    @patch('requests.post', return_value=MagicMock(return_value=[ { "translations": [ {"text": "I am tired" } ] } ]))
+    @patch('requests.post', return_value=MagicMock(return_value=[{"translations": [{"text": "I am tired"}]}]))
     def test_translate_API_error(self, request_post, get_access_token):
         resp = request_post.return_value
         resp.raise_for_status.side_effect = HTTPError(
