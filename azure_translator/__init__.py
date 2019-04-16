@@ -87,6 +87,6 @@ class Translator(object):
                 request=error.request
             )
         try:
-            return json.loads(resp.content)[0]['translations'][0]['text']
-        except (ValueError,KeyError) as e:
+            return (resp.json())[0]['translations'][0]['text']
+        except (ValueError,KeyError,TypeError) as e:
             raise AzureApiBadFormatError(unicode(e), response=resp, request=getattr(resp, 'request', None))
