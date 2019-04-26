@@ -1,7 +1,7 @@
 """Azure Translator module."""
-import xml.etree.ElementTree as ET
-
+import json
 import requests
+
 from .errors import (
     AzureApiError, AzureApiBadFormatError,
     AzureCannotGetTokenError, AzureApiTimeoutError
@@ -16,7 +16,7 @@ class Translator(object):
     """
     DEFAULT_LANGUAGE = 'en'
     TOKEN_API = 'https://api.cognitive.microsoft.com/sts/v1.0/issueToken'
-    TRANSLATE_API = 'https://api.microsofttranslator.com/v2/http.svc/Translate'
+    TRANSLATE_API = 'https://api.cognitive.microsofttranslator.com/translate?api-version=3.0'
     HTTP_TIMEOUT = 10  # seconds
 
 
@@ -57,19 +57,24 @@ class Translator(object):
         :param source_language:    optional source language
         """
         params = {
-            'text': text,
-            'to': to,
+            'to': to
         }
+
+        body = [{
+            'text' : text
+        }]
         if source_language:
             params['from'] = source_language
         try:
-            resp = requests.get(
+            resp = requests.post(
                 self.TRANSLATE_API,
                 headers={
                     'Authorization': 'Bearer {}'.format(self.get_access_token()),
-                    'Accept': 'application/xml',
+                    'Content-type': 'application/json',
+                    'Accept' : 'application/json'
                 },
                 params=params,
+                json=body,
                 timeout=self.HTTP_TIMEOUT
             )
             resp.raise_for_status()
@@ -81,8 +86,7 @@ class Translator(object):
                 response=error.response,
                 request=error.request
             )
-
         try:
-            return ET.fromstring(resp.content).text
-        except ET.ParseError as e:
+            return resp.json()[0]['translations'][0]['text']
+        except (ValueError, KeyError, TypeError) as e:
             raise AzureApiBadFormatError(unicode(e), response=resp, request=getattr(resp, 'request', None))

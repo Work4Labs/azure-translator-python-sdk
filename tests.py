@@ -30,13 +30,12 @@ class TranslatorTestCase(unittest.TestCase):
             },
             timeout=Translator.HTTP_TIMEOUT
         )
-        resp.raise_for_status.assert_called_with()
 
     @patch('requests.post')
     def test_get_access_token_error(self, request_post):
         resp = request_post.return_value
         resp.raise_for_status.side_effect = HTTPError(
-            'boom', response=MagicMock(content="<xml>OUPS</xml>"), request='req'
+            'boom', response=MagicMock(content="OUPS"), request='req'
         )
         with self.assertRaises(errors.AzureCannotGetTokenError):
             self.translator.get_access_token()
@@ -49,7 +48,6 @@ class TranslatorTestCase(unittest.TestCase):
             },
             timeout=Translator.HTTP_TIMEOUT
         )
-        resp.raise_for_status.assert_called_with()
 
     @patch('requests.post', side_effect=Timeout)
     def test_get_access_token_timeout(self, request_post):
@@ -66,159 +64,159 @@ class TranslatorTestCase(unittest.TestCase):
         )
 
     @patch.object(Translator, 'get_access_token', return_value='super-token')
-    @patch('requests.get', return_value=MagicMock(
-        content='<string xmlns="http://schemas.microsoft.com/2003/10/Serialization/">I am tired</string>'
-    ))
-    def test_translate(self, request_get, get_access_token):
+    @patch('requests.Response.json', return_value=[{"translations": [{"text": "I am tired"}]}])
+    @patch('requests.post')
+    def test_translate(self, request_post, response_json, get_access_token):
+        request_post.return_value = MagicMock(json=response_json)
+
         self.assertEqual(self.translator.translate(text='Je suis fatigué'), 'I am tired')
-        request_get.assert_called_with(
+        request_post.assert_called_with(
             self.translator.TRANSLATE_API,
             headers={
                 'Authorization': 'Bearer super-token',
-                'Accept': 'application/xml',
+                'Accept': 'application/json',
+                'Content-type': 'application/json',
             },
             timeout=Translator.HTTP_TIMEOUT,
             params={
-                'text': 'Je suis fatigué',
                 'to': self.translator.DEFAULT_LANGUAGE,
-            }
+            },
+            json=[{'text': 'Je suis fatigué'}]
         )
-        request_get.return_value.raise_for_status.assert_called_with()
         get_access_token.assert_called_with()
 
     @patch.object(Translator, 'get_access_token', return_value='super-token')
-    @patch('requests.get', return_value=MagicMock(
-        content='<string xmlns="http://schemas.microsoft.com/2003/10/Serialization/">Je suis</string>'
-    ))
-    def test_translate_custom_language(self, request_get, get_access_token):
+    @patch('requests.Response.json', return_value=[{"translations": [{"text": "Je suis"}]}])
+    @patch('requests.post')
+    def test_translate_custom_language(self, request_post, response_json, get_access_token):
+        request_post.return_value = MagicMock(json=response_json)
         self.assertEqual(self.translator.translate(text='I am', to='fr'), 'Je suis')
-        request_get.assert_called_with(
+        request_post.assert_called_with(
             self.translator.TRANSLATE_API,
             headers={
                 'Authorization': 'Bearer super-token',
-                'Accept': 'application/xml',
+                'Accept': 'application/json',
+                'Content-type': 'application/json',
             },
             timeout=Translator.HTTP_TIMEOUT,
             params={
-                'text': 'I am',
                 'to': 'fr',
-            }
+            },
+            json=[{'text': 'I am'}],
         )
-        request_get.return_value.raise_for_status.assert_called_with()
         get_access_token.assert_called_with()
 
 
     @patch.object(Translator, 'get_access_token', return_value='super-token')
-    @patch('requests.get', return_value=MagicMock(
-        content='<string xmlns="http://schemas.microsoft.com/2003/10/Serialization/">fatigué</string>'.encode('utf-8')
-    ))
-    def test_translate_response_encoding(self, request_get, get_access_token):
+    @patch('requests.Response.json', return_value=[{"translations": [{"text": "fatigué"}]}])
+    @patch('requests.post')
+    def test_translate_response_encoding(self, request_post, response_json, get_access_token):
+        request_post.return_value = MagicMock(json=response_json)
         self.assertEqual(self.translator.translate(text='tired', to='fr'), 'fatigué')
-        request_get.assert_called_with(
+        request_post.assert_called_with(
             self.translator.TRANSLATE_API,
             headers={
                 'Authorization': 'Bearer super-token',
-                'Accept': 'application/xml',
+                'Accept': 'application/json',
+                'Content-type': 'application/json',
             },
             timeout=Translator.HTTP_TIMEOUT,
             params={
-                'text': 'tired',
                 'to': 'fr',
-            }
+            },
+            json=[{'text': 'tired'}],
         )
-        request_get.return_value.raise_for_status.assert_called_with()
         get_access_token.assert_called_with()
 
     @patch.object(Translator, 'get_access_token', return_value='super-token')
-    @patch('requests.get', return_value=MagicMock(
-        content='<string xmlns="http://schemas.microsoft.com/2003/10/Serialization/">I am tired</string>'
-    ))
-    def test_translate_source_lang(self, request_get, get_access_token):
+    @patch('requests.Response.json', return_value=[{"translations": [{"text": "I am tired"}]}])
+    @patch('requests.post')
+    def test_translate_source_lang(self, request_post, response_json, get_access_token):
+        request_post.return_value = MagicMock(json=response_json)
         self.assertEqual(self.translator.translate(text='Je suis fatigué', source_language='fr'), 'I am tired')
-        request_get.assert_called_with(
+        request_post.assert_called_with(
             self.translator.TRANSLATE_API,
             headers={
                 'Authorization': 'Bearer super-token',
-                'Accept': 'application/xml',
+                'Accept': 'application/json',
+                'Content-type': 'application/json',
             },
+            json=[{'text': 'Je suis fatigué'}],
             timeout=Translator.HTTP_TIMEOUT,
             params={
-                'text': 'Je suis fatigué',
                 'to': self.translator.DEFAULT_LANGUAGE,
                 'from': 'fr',
             }
         )
-        request_get.return_value.raise_for_status.assert_called_with()
         get_access_token.assert_called_with()
 
     @patch.object(Translator, 'get_access_token', return_value='super-token')
-    @patch('requests.get', return_value=MagicMock(
-        content='<string xmlns="http://schemas.microsoft.com/2003/10/Serialization/">I am tired</string>'
-    ))
-    def test_translate_API_error(self, request_get, get_access_token):
-        resp = request_get.return_value
+    @patch('requests.post', return_value=MagicMock(return_value=[{"translations": [{"text": "I am tired"}]}]))
+    def test_translate_API_error(self, request_post, get_access_token):
+        resp = request_post.return_value
         resp.raise_for_status.side_effect = HTTPError(
-            'boom', response=MagicMock(content="<xml>OUPS</xml>"), request='req'
+            'boom', response=MagicMock(content="OUPS"), request='req'
         )
         with self.assertRaises(errors.AzureApiError):
             self.translator.translate(text='Je suis fatigué')
-        request_get.assert_called_with(
+        request_post.assert_called_with(
             self.translator.TRANSLATE_API,
             headers={
                 'Authorization': 'Bearer super-token',
-                'Accept': 'application/xml',
+                'Accept': 'application/json',
+                'Content-type': 'application/json',
             },
             timeout=Translator.HTTP_TIMEOUT,
             params={
-                'text': 'Je suis fatigué',
                 'to': self.translator.DEFAULT_LANGUAGE,
-            }
+            },
+            json=[{'text': 'Je suis fatigué'}]
         )
-        resp.raise_for_status.assert_called_with()
         get_access_token.assert_called_with()
 
     @patch.object(Translator, 'get_access_token', return_value='super-token')
-    @patch('requests.get', return_value=MagicMock(
-        content='oupsie'
-    ))
-    def test_translate_not_an_xml(self, request_get, get_access_token):
+    @patch('requests.Response.json', return_value='OUPS')
+    @patch('requests.post')
+    def test_translate_not_a_json(self, request_post, response_json, get_access_token):
+        request_post.return_value = MagicMock(raise_for_status=MagicMock(return_value='200'), json=response_json)
         with self.assertRaises(errors.AzureApiBadFormatError):
             self.translator.translate(text='Je suis fatigué')
-        request_get.assert_called_with(
+        request_post.assert_called_with(
             self.translator.TRANSLATE_API,
             headers={
                 'Authorization': 'Bearer super-token',
-                'Accept': 'application/xml',
+                'Accept': 'application/json',
+                'Content-type': 'application/json',
             },
             timeout=Translator.HTTP_TIMEOUT,
             params={
-                'text': 'Je suis fatigué',
                 'to': self.translator.DEFAULT_LANGUAGE,
-            }
+            },
+            json=[{'text': 'Je suis fatigué'}]
         )
-        request_get.return_value.raise_for_status.assert_called_with()
         get_access_token.assert_called_with()
 
     @patch.object(Translator, 'get_access_token', return_value='super-token')
-    @patch('requests.get', side_effect=Timeout)
-    def test_translate_timeout_error(self, request_get, get_access_token):
-        resp = request_get.return_value
+    @patch('requests.post', side_effect=Timeout)
+    def test_translate_timeout_error(self, request_post, get_access_token):
+        resp = request_post.return_value
         resp.raise_for_status.side_effect = HTTPError(
-            'boom', response=MagicMock(content="<xml>OUPS</xml>"), request='req'
+            'boom', response=MagicMock(content="OUPS"), request='req'
         )
         with self.assertRaises(errors.AzureApiTimeoutError):
             self.translator.translate(text='Je suis fatigué')
-        request_get.assert_called_with(
+        request_post.assert_called_with(
             self.translator.TRANSLATE_API,
             headers={
+                'Content-type' : 'application/json',
                 'Authorization': 'Bearer super-token',
-                'Accept': 'application/xml',
+                'Accept': 'application/json',
             },
             timeout=Translator.HTTP_TIMEOUT,
             params={
-                'text': 'Je suis fatigué',
                 'to': self.translator.DEFAULT_LANGUAGE,
-            }
+            },
+            json=[{'text': 'Je suis fatigué'}]
         )
         get_access_token.assert_called_with()
 
@@ -247,10 +245,10 @@ class ErrorsTestCase(unittest.TestCase):
         resp = Response()
         resp.status_code = 400
         resp._content = (
-            "<html><body><h1>Argument Exception</h1><p>Method: Translate()</p>"
-            "<p>Parameter: from</p><p>Message: 'from' must be a valid language&#xD;"
-            "\nParameter name: from</p><code></code>"
-            "<p>message id=0243.V2_Rest.Translate.49CC880B</p></body></html>"
+            "Argument Exception; Method: Translate(); "
+            "Parameter: from; "
+            "Message: 'from' must be a valid language; Parameter name: from; "
+            "message id=0243.V2_Rest.Translate.49CC880B"
         )
         exc = errors.AzureApiError("oups", response=resp)
         self.assertIsNotNone(exc.response)
@@ -268,4 +266,4 @@ class ErrorsTestCase(unittest.TestCase):
         resp.status_code = 400
         resp._content = "eazoieoiazbeoazgeoaziub"
         exc = errors.AzureApiError("stuff", response=resp)
-        self.assertEqual(str(exc), "stuff")
+        self.assertNotEqual(str(exc), "stuff")
