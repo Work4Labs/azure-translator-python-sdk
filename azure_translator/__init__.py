@@ -39,10 +39,10 @@ class Translator(object):
             )
             resp.raise_for_status()
         except requests.exceptions.Timeout as error:
-            raise AzureApiTimeoutError(unicode(error), request=error.request)
+            raise AzureApiTimeoutError(str(error), request=error.request)
         except requests.exceptions.HTTPError as error:
             raise AzureCannotGetTokenError(
-                unicode(error),
+                str(error),
                 response=error.response,
                 request=error.request
             )
@@ -79,14 +79,14 @@ class Translator(object):
             )
             resp.raise_for_status()
         except requests.exceptions.Timeout as error:
-            raise AzureApiTimeoutError(unicode(error), request=error.request)
+            raise AzureApiTimeoutError(str(error), request=error.request)
         except requests.exceptions.HTTPError as error:
             raise AzureApiError(
-                unicode(error),
+                str(error),
                 response=error.response,
                 request=error.request
             )
         try:
             return resp.json()[0]['translations'][0]['text']
         except (ValueError, KeyError, TypeError) as e:
-            raise AzureApiBadFormatError(unicode(e), response=resp, request=getattr(resp, 'request', None))
+            raise AzureApiBadFormatError(str(e), response=resp, request=getattr(resp, 'request', None))
