@@ -63,7 +63,7 @@ class TranslatorTestCase(unittest.TestCase):
             timeout=Translator.HTTP_TIMEOUT
         )
 
-    @patch.object(Translator, 'get_access_token', return_value='super-token')
+    @patch.object(Translator, 'get_access_token', return_value=b'super-token')
     @patch('requests.Response.json', return_value=[{"translations": [{"text": "I am tired"}]}])
     @patch('requests.post')
     def test_translate(self, request_post, response_json, get_access_token):
@@ -85,7 +85,7 @@ class TranslatorTestCase(unittest.TestCase):
         )
         get_access_token.assert_called_with()
 
-    @patch.object(Translator, 'get_access_token', return_value='super-token')
+    @patch.object(Translator, 'get_access_token', return_value=b'super-token')
     @patch('requests.Response.json', return_value=[{"translations": [{"text": "Je suis"}]}])
     @patch('requests.post')
     def test_translate_custom_language(self, request_post, response_json, get_access_token):
@@ -107,7 +107,7 @@ class TranslatorTestCase(unittest.TestCase):
         get_access_token.assert_called_with()
 
 
-    @patch.object(Translator, 'get_access_token', return_value='super-token')
+    @patch.object(Translator, 'get_access_token', return_value=b'super-token')
     @patch('requests.Response.json', return_value=[{"translations": [{"text": "fatigué"}]}])
     @patch('requests.post')
     def test_translate_response_encoding(self, request_post, response_json, get_access_token):
@@ -128,7 +128,7 @@ class TranslatorTestCase(unittest.TestCase):
         )
         get_access_token.assert_called_with()
 
-    @patch.object(Translator, 'get_access_token', return_value='super-token')
+    @patch.object(Translator, 'get_access_token', return_value=b'super-token')
     @patch('requests.Response.json', return_value=[{"translations": [{"text": "I am tired"}]}])
     @patch('requests.post')
     def test_translate_source_lang(self, request_post, response_json, get_access_token):
@@ -150,7 +150,7 @@ class TranslatorTestCase(unittest.TestCase):
         )
         get_access_token.assert_called_with()
 
-    @patch.object(Translator, 'get_access_token', return_value='super-token')
+    @patch.object(Translator, 'get_access_token', return_value=b'super-token')
     @patch('requests.post', return_value=MagicMock(return_value=[{"translations": [{"text": "I am tired"}]}]))
     def test_translate_API_error(self, request_post, get_access_token):
         resp = request_post.return_value
@@ -174,7 +174,7 @@ class TranslatorTestCase(unittest.TestCase):
         )
         get_access_token.assert_called_with()
 
-    @patch.object(Translator, 'get_access_token', return_value='super-token')
+    @patch.object(Translator, 'get_access_token', return_value=b'super-token')
     @patch('requests.Response.json', return_value='OUPS')
     @patch('requests.post')
     def test_translate_not_a_json(self, request_post, response_json, get_access_token):
@@ -196,7 +196,7 @@ class TranslatorTestCase(unittest.TestCase):
         )
         get_access_token.assert_called_with()
 
-    @patch.object(Translator, 'get_access_token', return_value='super-token')
+    @patch.object(Translator, 'get_access_token', return_value=b'super-token')
     @patch('requests.post', side_effect=Timeout)
     def test_translate_timeout_error(self, request_post, get_access_token):
         resp = request_post.return_value

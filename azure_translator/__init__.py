@@ -69,7 +69,7 @@ class Translator(object):
             resp = requests.post(
                 self.TRANSLATE_API,
                 headers={
-                    'Authorization': 'Bearer {}'.format(self.get_access_token()),
+                    'Authorization': 'Bearer {}'.format(self.get_access_token().decode()),
                     'Content-type': 'application/json',
                     'Accept' : 'application/json'
                 },
